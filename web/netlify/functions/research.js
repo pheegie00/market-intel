@@ -173,7 +173,7 @@ CATEGORY 4 - TRADITIONAL PRODUCTS (if appropriate)
 IMPORTANT: At least 5 offers MUST be from Categories 1-3 (tools, aggregation, viral). Do NOT just suggest courses and communities. Think like a growth hacker building automated systems.
 
 Return as JSON object with:
-- offers: array of 7-10 offer ideas (MINIMUM 5 from Categories 1-3), each containing:
+- offers: array of 10-12 offer ideas (MINIMUM 7 from Categories 1-3), each containing:
   - name: catchy offer name
   - category: which of the 4 categories above
   - type: tool, aggregator, viral-mechanic, course, community, etc.

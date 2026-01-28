@@ -291,9 +291,11 @@
                 };
             }
             
-            // Store offers for builder
+            // Store offers for builder and fix data structure for renderFull
             if (fullData.offers?.offers) {
                 currentOffers = fullData.offers.offers;
+                // renderFull expects "recommended" not "offers"
+                fullData.offers.recommended = fullData.offers.offers;
             }
             
             // Now render the full results
