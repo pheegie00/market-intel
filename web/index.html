@@ -859,22 +859,29 @@
                 ` : ''}
                 
                 <!-- Where to Find Them -->
-                ${data.channels ? `
+                ${data.channels && !data.channels.parseError ? `
                     <div class="mb-8">
                         <h3 class="text-xl font-semibold mb-4 flex items-center gap-2">📍 Where to Find Them</h3>
                         <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
-                            ${Object.entries(data.channels).map(([key, val]) => {
+                            ${Object.entries(data.channels).filter(([key]) => !['raw', 'parseError'].includes(key)).map(([key, val]) => {
                                 if (!val || (Array.isArray(val) && val.length === 0)) return '';
-                                const icons = { reddit: '🔴', linkedin: '💼', newsletters: '📧', podcasts: '🎙️', influencers: '⭐' };
+                                const icons = { reddit: '🔴', linkedin: '💼', newsletters: '📧', podcasts: '🎙️', influencers: '⭐', facebook: '📘', discord: '💬', slack: '💬', youtube: '▶️', twitter: '🐦', saasTools: '🛠️', courses: '📚', certifications: '🎓', jobBoards: '💼', events: '📅' };
                                 return `
                                     <div class="bg-gray-700/30 rounded-lg p-3 border border-gray-600/50">
                                         <h4 class="font-semibold text-blue-300 text-sm mb-2">${icons[key] || '📌'} ${key}</h4>
                                         <ul class="text-xs text-gray-400 space-y-1">
-                                            ${(Array.isArray(val) ? val.slice(0, 3) : [val]).map(v => `<li>• ${typeof v === 'string' ? v : v.name || JSON.stringify(v)}</li>`).join('')}
+                                            ${(Array.isArray(val) ? val.slice(0, 4) : [val]).map(v => `<li>• ${typeof v === 'string' ? v : v.name || v.subreddit || (typeof v === 'object' ? Object.values(v)[0] : v)}</li>`).join('')}
                                         </ul>
                                     </div>
                                 `;
                             }).join('')}
+                        </div>
+                    </div>
+                ` : data.channels?.parseError ? `
+                    <div class="mb-8">
+                        <h3 class="text-xl font-semibold mb-4 flex items-center gap-2">📍 Where to Find Them</h3>
+                        <div class="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-4">
+                            <p class="text-yellow-400 text-sm">⚠️ Channel data format issue. Click "Deep Dive: Channels" below for full results.</p>
                         </div>
                     </div>
                 ` : ''}
