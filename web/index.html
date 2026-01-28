@@ -1,0 +1,859 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Market Intel Suite</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .tab-active { background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%); color: white; }
+        .fade-in { animation: fadeIn 0.3s ease-in; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .loading { animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .spinner { animation: spin 1s linear infinite; }
+        .card { background: rgba(31, 41, 55, 0.8); backdrop-filter: blur(10px); }
+        .gradient-bg { background: linear-gradient(135deg, #1e3a5f 0%, #2d1b4e 50%, #1a1a2e 100%); }
+    </style>
+</head>
+<body class="gradient-bg text-white min-h-screen">
+    <div class="container mx-auto px-4 py-8 max-w-5xl">
+        <!-- Header -->
+        <header class="text-center mb-8">
+            <h1 class="text-4xl font-bold bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+                🎯 Market Intel Suite
+            </h1>
+            <p class="text-gray-400 mt-2">AI-powered market research • Find your audience • Discover opportunities</p>
+        </header>
+
+        <!-- Main Search -->
+        <div class="card rounded-2xl p-6 mb-6 shadow-xl">
+            <div class="flex flex-col md:flex-row gap-4">
+                <input type="text" id="main-query" 
+                       placeholder="Enter your niche, audience, or market to research..."
+                       class="flex-1 bg-gray-700/50 border border-gray-600 rounded-xl px-5 py-4 text-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none transition">
+                <button onclick="runFullAnalysis()" 
+                        class="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 px-8 py-4 rounded-xl font-semibold text-lg transition shadow-lg hover:shadow-purple-500/25">
+                    🚀 Full Analysis
+                </button>
+            </div>
+            <p class="text-gray-500 text-sm mt-3">
+                Example: "project managers wanting to advance to director roles" or "women in operations leadership"
+            </p>
+        </div>
+
+        <!-- Tabs -->
+        <nav class="flex gap-2 mb-6 flex-wrap justify-center">
+            <button onclick="showTab('audience')" id="tab-audience" class="tab-btn px-4 py-2.5 rounded-xl bg-gray-700/50 hover:bg-gray-600/50 transition text-sm font-medium">
+                🎯 Audience
+            </button>
+            <button onclick="showTab('channels')" id="tab-channels" class="tab-btn px-4 py-2.5 rounded-xl bg-gray-700/50 hover:bg-gray-600/50 transition text-sm font-medium">
+                📍 Channels
+            </button>
+            <button onclick="showTab('painpoints')" id="tab-painpoints" class="tab-btn px-4 py-2.5 rounded-xl bg-gray-700/50 hover:bg-gray-600/50 transition text-sm font-medium">
+                🔥 Pain Points
+            </button>
+            <button onclick="showTab('competitors')" id="tab-competitors" class="tab-btn px-4 py-2.5 rounded-xl bg-gray-700/50 hover:bg-gray-600/50 transition text-sm font-medium">
+                🏢 Competitors
+            </button>
+            <button onclick="showTab('demand')" id="tab-demand" class="tab-btn px-4 py-2.5 rounded-xl bg-gray-700/50 hover:bg-gray-600/50 transition text-sm font-medium">
+                📊 Demand
+            </button>
+            <button onclick="showTab('offers')" id="tab-offers" class="tab-btn px-4 py-2.5 rounded-xl bg-gray-700/50 hover:bg-gray-600/50 transition text-sm font-medium">
+                💡 Offers
+            </button>
+            <button onclick="showTab('full')" id="tab-full" class="tab-btn px-4 py-2.5 rounded-xl bg-gray-700/50 hover:bg-gray-600/50 transition text-sm font-medium tab-active">
+                ⚡ Full Report
+            </button>
+        </nav>
+
+        <!-- Results Container -->
+        <div id="results-container" class="card rounded-2xl p-6 shadow-xl min-h-[400px]">
+            <div id="loading" class="hidden flex flex-col items-center justify-center py-20">
+                <div class="w-16 h-16 border-4 border-purple-500 border-t-transparent rounded-full spinner mb-4"></div>
+                <p class="text-gray-400" id="loading-text">Analyzing market...</p>
+            </div>
+            
+            <div id="empty-state" class="flex flex-col items-center justify-center py-20 text-center">
+                <div class="text-6xl mb-4">🔍</div>
+                <h3 class="text-xl font-semibold text-gray-300 mb-2">Ready to Research</h3>
+                <p class="text-gray-500 max-w-md">
+                    Enter a niche or audience above and click "Full Analysis" to get comprehensive market intelligence, 
+                    or use the tabs to run specific research.
+                </p>
+            </div>
+
+            <div id="results" class="hidden fade-in"></div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="text-center mt-8 text-gray-500 text-sm">
+            <p>Powered by AI • Built for solo creators and entrepreneurs</p>
+        </footer>
+    </div>
+
+    <script>
+        const API_URL = "/.netlify/functions/research";
+        let currentTab = "full";
+        let currentQuery = "";
+        let resultsCache = {};
+        let currentOffers = [];
+
+        // Open offer builder with selected offer
+        function openOfferBuilder(index) {
+            const offer = currentOffers[index];
+            if (offer) {
+                const offerData = encodeURIComponent(JSON.stringify(offer));
+                window.open(`offer-builder.html?offer=${offerData}`, '_blank');
+            }
+        }
+
+        // Tab switching
+        function showTab(tab) {
+            currentTab = tab;
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('tab-active'));
+            document.getElementById(`tab-${tab}`).classList.add('tab-active');
+            
+            // If we have cached results for this tab, show them
+            if (resultsCache[tab]) {
+                displayResults(tab, resultsCache[tab]);
+            }
+        }
+
+        // Run specific research type
+        async function runResearch(type, query = null) {
+            query = query || document.getElementById('main-query').value.trim();
+            if (!query) {
+                alert('Please enter a niche or audience to research');
+                return;
+            }
+            
+            currentQuery = query;
+            showLoading(type);
+            
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ type, query })
+                });
+                
+                // Check if response is OK before parsing
+                if (!response.ok) {
+                    throw new Error(`Server error: ${response.status}. Try a shorter query or use individual tabs.`);
+                }
+                
+                const text = await response.text();
+                let data;
+                try {
+                    data = JSON.parse(text);
+                } catch (e) {
+                    // Response was not JSON (likely HTML error page from timeout)
+                    throw new Error('Analysis timed out. Try a shorter query or use individual tabs instead of Full Analysis.');
+                }
+                
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+                
+                resultsCache[type] = data.result;
+                
+                // Store offers for the builder
+                if (type === 'offers' && data.result.offers) {
+                    currentOffers = data.result.offers;
+                } else if (type === 'full' && data.result.offers?.recommended) {
+                    currentOffers = data.result.offers.recommended;
+                }
+                
+                displayResults(type, data.result);
+                
+            } catch (error) {
+                showError(error.message);
+            }
+        }
+
+        // Run full analysis - sequential calls to avoid timeout
+        async function runFullAnalysis() {
+            const query = document.getElementById('main-query').value.trim();
+            if (!query) {
+                alert('Please enter a niche or audience to research');
+                return;
+            }
+            
+            showTab('full');
+            currentQuery = query;
+            
+            const steps = [
+                { type: 'demand', label: 'Validating demand...', icon: '📊' },
+                { type: 'audience', label: 'Discovering audiences...', icon: '🎯' },
+                { type: 'channels', label: 'Finding channels...', icon: '📍' },
+                { type: 'painpoints', label: 'Mining pain points...', icon: '🔥' },
+                { type: 'competitors', label: 'Analyzing competitors...', icon: '⚔️' },
+                { type: 'offers', label: 'Generating offers...', icon: '💡' }
+            ];
+            
+            // Show progress UI
+            document.getElementById('loading').classList.add('hidden');
+            document.getElementById('empty-state').classList.add('hidden');
+            const results = document.getElementById('results');
+            results.classList.remove('hidden');
+            results.innerHTML = `
+                <h2 class="text-2xl font-bold mb-6">⚡ Full Market Analysis</h2>
+                <p class="text-gray-400 mb-6">Query: "${query}"</p>
+                <div id="progress-steps" class="space-y-3 mb-8"></div>
+                <div id="partial-results"></div>
+            `;
+            
+            const progressContainer = document.getElementById('progress-steps');
+            const partialResults = document.getElementById('partial-results');
+            
+            // Initialize progress steps
+            steps.forEach((step, i) => {
+                progressContainer.innerHTML += `
+                    <div id="step-${step.type}" class="flex items-center gap-3 p-3 rounded-lg bg-gray-700/30 border border-gray-600/50">
+                        <span class="text-xl" id="icon-${step.type}">${step.icon}</span>
+                        <span class="flex-1" id="label-${step.type}">${step.label}</span>
+                        <span id="status-${step.type}" class="text-gray-500">⏳ Waiting</span>
+                    </div>
+                `;
+            });
+            
+            // Collect results
+            const fullData = {};
+            
+            // Run each step sequentially
+            for (const step of steps) {
+                const stepEl = document.getElementById(`step-${step.type}`);
+                const statusEl = document.getElementById(`status-${step.type}`);
+                
+                stepEl.classList.remove('bg-gray-700/30', 'border-gray-600/50');
+                stepEl.classList.add('bg-purple-500/20', 'border-purple-500/50');
+                statusEl.textContent = '🔄 Running...';
+                statusEl.classList.remove('text-gray-500');
+                statusEl.classList.add('text-purple-400');
+                
+                try {
+                    const response = await fetch(API_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ type: step.type, query })
+                    });
+                    
+                    // Check if response is OK before parsing
+                    if (!response.ok) {
+                        throw new Error(`Server error: ${response.status}`);
+                    }
+                    
+                    const text = await response.text();
+                    let data;
+                    try {
+                        data = JSON.parse(text);
+                    } catch (e) {
+                        throw new Error('Invalid response from server');
+                    }
+                    
+                    if (data.error) {
+                        throw new Error(data.error);
+                    }
+                    
+                    // Store result
+                    fullData[step.type] = data.result;
+                    resultsCache[step.type] = data.result;
+                    
+                    // Update step status
+                    stepEl.classList.remove('bg-purple-500/20', 'border-purple-500/50');
+                    stepEl.classList.add('bg-green-500/10', 'border-green-500/30');
+                    statusEl.textContent = '✅ Done';
+                    statusEl.classList.remove('text-purple-400');
+                    statusEl.classList.add('text-green-400');
+                    
+                } catch (error) {
+                    stepEl.classList.remove('bg-purple-500/20', 'border-purple-500/50');
+                    stepEl.classList.add('bg-red-500/10', 'border-red-500/30');
+                    statusEl.textContent = '❌ Failed';
+                    statusEl.classList.remove('text-purple-400');
+                    statusEl.classList.add('text-red-400');
+                    console.error(`${step.type} failed:`, error);
+                }
+            }
+            
+            // Build verdict from demand data
+            if (fullData.demand) {
+                fullData.verdict = {
+                    pursue: fullData.demand.demandScore >= 7 ? 'yes' : fullData.demand.demandScore >= 4 ? 'maybe' : 'no',
+                    reasoning: fullData.demand.recommendation || 'Analysis complete. Review the sections above.',
+                    nextSteps: [
+                        'Review the top audience segments and pick one to focus on',
+                        'Join 2-3 channels where they hang out and observe',
+                        'Validate the top pain points with real conversations'
+                    ]
+                };
+            }
+            
+            // Store offers for builder
+            if (fullData.offers?.offers) {
+                currentOffers = fullData.offers.offers;
+            }
+            
+            // Now render the full results
+            setTimeout(() => {
+                results.innerHTML = renderFull(fullData);
+            }, 500);
+        }
+
+        // Loading state
+        function showLoading(type) {
+            const loadingTexts = {
+                audience: "Discovering audience segments...",
+                channels: "Finding where they hang out...",
+                painpoints: "Mining pain points...",
+                competitors: "Analyzing competitors...",
+                demand: "Validating demand...",
+                offers: "Generating offer ideas...",
+                full: "Running comprehensive analysis..."
+            };
+            
+            document.getElementById('loading-text').textContent = loadingTexts[type] || "Analyzing...";
+            document.getElementById('loading').classList.remove('hidden');
+            document.getElementById('empty-state').classList.add('hidden');
+            document.getElementById('results').classList.add('hidden');
+        }
+
+        // Display results based on type
+        function displayResults(type, data) {
+            document.getElementById('loading').classList.add('hidden');
+            document.getElementById('empty-state').classList.add('hidden');
+            const results = document.getElementById('results');
+            results.classList.remove('hidden');
+            
+            if (data.parseError) {
+                results.innerHTML = `<pre class="whitespace-pre-wrap text-sm">${data.raw}</pre>`;
+                return;
+            }
+
+            const renderers = {
+                audience: renderAudience,
+                channels: renderChannels,
+                painpoints: renderPainpoints,
+                competitors: renderCompetitors,
+                demand: renderDemand,
+                offers: renderOffers,
+                full: renderFull
+            };
+
+            results.innerHTML = renderers[type] ? renderers[type](data) : `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+        }
+
+        // Render functions for each type
+        function renderAudience(data) {
+            if (!Array.isArray(data)) data = data.segments || data.audience || [data];
+            
+            return `
+                <h2 class="text-2xl font-bold mb-6 flex items-center gap-2">🎯 Audience Segments</h2>
+                <div class="grid gap-4">
+                    ${data.map((seg, i) => `
+                        <div class="bg-gray-700/30 rounded-xl p-5 border border-gray-600/50">
+                            <div class="flex justify-between items-start mb-3">
+                                <h3 class="text-lg font-semibold text-purple-300">${seg.name || `Segment ${i+1}`}</h3>
+                                <span class="px-3 py-1 rounded-full text-xs font-medium ${
+                                    seg.underservedLevel === 'high' ? 'bg-green-500/20 text-green-300' :
+                                    seg.underservedLevel === 'medium' ? 'bg-yellow-500/20 text-yellow-300' :
+                                    'bg-gray-500/20 text-gray-300'
+                                }">${seg.underservedLevel || 'unknown'} opportunity</span>
+                            </div>
+                            <p class="text-gray-300 mb-2"><strong>Who:</strong> ${seg.who || seg.demographics || '-'}</p>
+                            <p class="text-gray-400 text-sm"><strong>Psychographics:</strong> ${seg.psychographics || '-'}</p>
+                            ${seg.notes ? `<p class="text-gray-500 text-sm mt-2 italic">${seg.notes}</p>` : ''}
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        function renderChannels(data) {
+            const channels = ['reddit', 'linkedin', 'facebook', 'discord', 'slack', 'newsletters', 'podcasts', 'youtube', 'influencers', 'events', 'jobBoards', 'certifications', 'courses'];
+            const icons = { reddit: '🔴', linkedin: '💼', facebook: '👥', discord: '💬', slack: '💬', newsletters: '📧', podcasts: '🎙️', youtube: '📺', influencers: '⭐', events: '🎪', jobBoards: '💼', certifications: '🏅', courses: '📚' };
+            
+            return `
+                <h2 class="text-2xl font-bold mb-6 flex items-center gap-2">📍 Where They Hang Out</h2>
+                <div class="grid md:grid-cols-2 gap-4">
+                    ${channels.map(ch => {
+                        const items = data[ch];
+                        if (!items || (Array.isArray(items) && items.length === 0)) return '';
+                        return `
+                            <div class="bg-gray-700/30 rounded-xl p-4 border border-gray-600/50">
+                                <h3 class="font-semibold text-blue-300 mb-2">${icons[ch] || '📌'} ${ch.charAt(0).toUpperCase() + ch.slice(1)}</h3>
+                                <ul class="space-y-1 text-sm">
+                                    ${(Array.isArray(items) ? items : [items]).map(item => `
+                                        <li class="text-gray-300">• ${typeof item === 'string' ? item : item.name || JSON.stringify(item)}</li>
+                                    `).join('')}
+                                </ul>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+                
+                ${data.saasTools && data.saasTools.length > 0 ? `
+                    <div class="mt-6">
+                        <h3 class="text-xl font-semibold mb-4 flex items-center gap-2">🛠️ SaaS Tools They Use</h3>
+                        <div class="space-y-3">
+                            ${data.saasTools.map(tool => `
+                                <div class="bg-purple-500/10 border border-purple-500/30 rounded-xl p-4">
+                                    <div class="flex justify-between items-start">
+                                        <div>
+                                            <h4 class="font-semibold text-purple-300">${tool.name}</h4>
+                                            ${tool.url ? `<a href="${tool.url}" target="_blank" class="text-xs text-blue-400 hover:underline">${tool.url}</a>` : ''}
+                                        </div>
+                                        ${tool.pricing ? `<span class="text-green-400 text-sm">${tool.pricing}</span>` : ''}
+                                    </div>
+                                    ${tool.whatItDoes ? `<p class="text-gray-300 text-sm mt-2">${tool.whatItDoes}</p>` : ''}
+                                    ${tool.gap ? `<p class="text-yellow-400 text-xs mt-2">⚠️ Gap: ${tool.gap}</p>` : ''}
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                ` : ''}
+            `;
+        }
+
+        function renderPainpoints(data) {
+            return `
+                <h2 class="text-2xl font-bold mb-6 flex items-center gap-2">🔥 Pain Points</h2>
+                
+                ${data.urgent ? `
+                    <div class="mb-6">
+                        <h3 class="text-lg font-semibold text-red-400 mb-3">🚨 Urgent Problems</h3>
+                        <div class="space-y-2">
+                            ${data.urgent.map(p => `
+                                <div class="bg-red-500/10 border border-red-500/30 rounded-lg p-3">
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-200">${p.description || p}</span>
+                                        ${p.intensity ? `<span class="text-red-400 font-bold">${p.intensity}/10</span>` : ''}
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                ` : ''}
+                
+                ${data.chronic ? `
+                    <div class="mb-6">
+                        <h3 class="text-lg font-semibold text-yellow-400 mb-3">😤 Chronic Frustrations</h3>
+                        <div class="space-y-2">
+                            ${data.chronic.map(p => `
+                                <div class="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-3 text-gray-200">
+                                    ${p.description || p}
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                ` : ''}
+                
+                ${data.questions ? `
+                    <div class="mb-6">
+                        <h3 class="text-lg font-semibold text-blue-400 mb-3">❓ Questions They Ask</h3>
+                        <ul class="space-y-2">
+                            ${data.questions.map(q => `<li class="text-gray-300">• "${q}"</li>`).join('')}
+                        </ul>
+                    </div>
+                ` : ''}
+                
+                ${data.wishes ? `
+                    <div>
+                        <h3 class="text-lg font-semibold text-green-400 mb-3">✨ What They Wish Existed</h3>
+                        <ul class="space-y-2">
+                            ${data.wishes.map(w => `<li class="text-gray-300">• ${w}</li>`).join('')}
+                        </ul>
+                    </div>
+                ` : ''}
+            `;
+        }
+
+        function renderCompetitors(data) {
+            const renderCompetitorList = (list, title, color) => {
+                if (!list || list.length === 0) return '';
+                return `
+                    <div class="mb-6">
+                        <h3 class="text-lg font-semibold ${color} mb-3">${title}</h3>
+                        <div class="space-y-3">
+                            ${list.map(c => `
+                                <div class="bg-gray-700/30 rounded-lg p-4 border border-gray-600/50">
+                                    <div class="flex justify-between items-start mb-2">
+                                        <h4 class="font-semibold text-white">${c.name}</h4>
+                                        ${c.pricing ? `<span class="text-green-400 text-sm">${c.pricing}</span>` : ''}
+                                    </div>
+                                    <p class="text-gray-300 text-sm mb-2">${c.offering || c.description || ''}</p>
+                                    ${c.weakness ? `<p class="text-red-400 text-xs">Gap: ${c.weakness}</p>` : ''}
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            };
+
+            return `
+                <h2 class="text-2xl font-bold mb-6 flex items-center gap-2">🏢 Competitive Landscape</h2>
+                ${renderCompetitorList(data.direct, '🎯 Direct Competitors', 'text-red-400')}
+                ${renderCompetitorList(data.indirect, '↔️ Indirect Competitors', 'text-yellow-400')}
+                
+                ${data.gaps ? `
+                    <div class="bg-green-500/10 border border-green-500/30 rounded-xl p-4 mt-4">
+                        <h3 class="text-lg font-semibold text-green-400 mb-3">💎 Market Gaps & Opportunities</h3>
+                        <ul class="space-y-2">
+                            ${data.gaps.map(g => `<li class="text-gray-200">• ${g}</li>`).join('')}
+                        </ul>
+                    </div>
+                ` : ''}
+            `;
+        }
+
+        function renderDemand(data) {
+            const scoreColor = data.demandScore >= 7 ? 'text-green-400' : data.demandScore >= 5 ? 'text-yellow-400' : 'text-red-400';
+            
+            return `
+                <h2 class="text-2xl font-bold mb-6 flex items-center gap-2">📊 Demand Validation</h2>
+                
+                <div class="grid md:grid-cols-3 gap-4 mb-6">
+                    <div class="bg-gray-700/30 rounded-xl p-4 text-center border border-gray-600/50">
+                        <div class="text-4xl font-bold ${scoreColor}">${data.demandScore || '?'}/10</div>
+                        <div class="text-gray-400 text-sm">Demand Score</div>
+                    </div>
+                    <div class="bg-gray-700/30 rounded-xl p-4 text-center border border-gray-600/50">
+                        <div class="text-2xl font-bold ${
+                            data.trendDirection === 'growing' ? 'text-green-400' :
+                            data.trendDirection === 'declining' ? 'text-red-400' : 'text-yellow-400'
+                        }">${data.trendDirection === 'growing' ? '📈' : data.trendDirection === 'declining' ? '📉' : '➡️'} ${data.trendDirection || 'Unknown'}</div>
+                        <div class="text-gray-400 text-sm">Trend</div>
+                    </div>
+                    <div class="bg-gray-700/30 rounded-xl p-4 text-center border border-gray-600/50">
+                        <div class="text-2xl font-bold text-purple-400">${data.competitionLevel || '?'}</div>
+                        <div class="text-gray-400 text-sm">Competition</div>
+                    </div>
+                </div>
+                
+                ${data.searchTerms ? `
+                    <div class="mb-6">
+                        <h3 class="text-lg font-semibold text-blue-400 mb-3">🔍 Search Terms</h3>
+                        <div class="flex flex-wrap gap-2">
+                            ${(Array.isArray(data.searchTerms) ? data.searchTerms : []).map(t => `
+                                <span class="bg-blue-500/20 text-blue-300 px-3 py-1 rounded-full text-sm">${typeof t === 'string' ? t : t.term || t.keyword}</span>
+                            `).join('')}
+                        </div>
+                    </div>
+                ` : ''}
+                
+                ${data.recommendation ? `
+                    <div class="bg-purple-500/10 border border-purple-500/30 rounded-xl p-4">
+                        <h3 class="text-lg font-semibold text-purple-400 mb-2">💡 Recommendation</h3>
+                        <p class="text-gray-200">${data.recommendation}</p>
+                    </div>
+                ` : ''}
+            `;
+        }
+
+        function renderOffers(data) {
+            const offers = data.offers || data;
+            
+            return `
+                <h2 class="text-2xl font-bold mb-6 flex items-center gap-2">💡 Offer Ideas</h2>
+                
+                ${data.recommended ? `
+                    <div class="bg-green-500/10 border border-green-500/30 rounded-xl p-4 mb-6">
+                        <h3 class="text-lg font-semibold text-green-400 mb-2">⭐ Recommended Start</h3>
+                        <p class="text-gray-200">${data.recommended}</p>
+                    </div>
+                ` : ''}
+                
+                <p class="text-gray-400 text-sm mb-4">👆 Click any offer to build it into a $100M irresistible offer with landing page</p>
+                <div class="grid gap-4">
+                    ${(Array.isArray(offers) ? offers : []).map((offer, idx) => `
+                        <div class="bg-gray-700/30 rounded-xl p-5 border border-gray-600/50 cursor-pointer hover:border-purple-500/50 hover:bg-gray-700/50 transition" onclick="openOfferBuilder(${idx})">
+                            <div class="flex justify-between items-start mb-3">
+                                <div>
+                                    <h3 class="text-lg font-semibold text-purple-300">${offer.name}</h3>
+                                    <div class="flex gap-2 mt-1">
+                                        ${offer.category ? `<span class="text-xs bg-purple-500/30 text-purple-300 px-2 py-0.5 rounded">${offer.category}</span>` : ''}
+                                        <span class="text-xs text-gray-500">${offer.type || 'Product'}</span>
+                                    </div>
+                                </div>
+                                <div class="text-right">
+                                    <div class="text-green-400 font-bold">${offer.priceRange || offer.pricing || '?'}</div>
+                                    <div class="text-xs text-gray-500">${offer.effort || '?'} effort</div>
+                                </div>
+                            </div>
+                            <p class="text-gray-300 text-sm mb-3">${offer.description}</p>
+                            ${offer.distributionPlay ? `<p class="text-cyan-400 text-xs mb-1">📣 Distribution: ${offer.distributionPlay}</p>` : ''}
+                            ${offer.painSolved ? `<p class="text-yellow-400 text-xs">Solves: ${offer.painSolved}</p>` : ''}
+                            ${offer.revenueModel ? `<p class="text-green-400 text-xs mt-1">💰 Revenue: ${offer.revenueModel}</p>` : ''}
+                            ${offer.growthPotential ? `<p class="text-blue-400 text-xs mt-1">📈 Growth: ${offer.growthPotential}</p>` : ''}
+                        </div>
+                    `).join('')}
+                </div>
+                
+                ${data.quickWin ? `
+                    <div class="mt-6 bg-yellow-500/10 border border-yellow-500/30 rounded-xl p-4">
+                        <h3 class="text-lg font-semibold text-yellow-400 mb-2">⚡ Quick Win</h3>
+                        <p class="text-gray-300 text-sm">${typeof data.quickWin === 'string' ? data.quickWin : data.quickWin.name + ': ' + (data.quickWin.description || '')}</p>
+                    </div>
+                ` : ''}
+                
+                ${data.aggregationPlay ? `
+                    <div class="mt-4 bg-cyan-500/10 border border-cyan-500/30 rounded-xl p-4">
+                        <h3 class="text-lg font-semibold text-cyan-400 mb-2">📰 Aggregation Play</h3>
+                        <p class="text-gray-300 text-sm">${typeof data.aggregationPlay === 'string' ? data.aggregationPlay : data.aggregationPlay.name + ': ' + (data.aggregationPlay.description || '')}</p>
+                    </div>
+                ` : ''}
+                
+                ${data.viralMechanic ? `
+                    <div class="mt-4 bg-pink-500/10 border border-pink-500/30 rounded-xl p-4">
+                        <h3 class="text-lg font-semibold text-pink-400 mb-2">🔄 Viral Mechanic</h3>
+                        <p class="text-gray-300 text-sm">${typeof data.viralMechanic === 'string' ? data.viralMechanic : data.viralMechanic.name + ': ' + (data.viralMechanic.description || '')}</p>
+                    </div>
+                ` : ''}
+                
+                ${data.distribution ? `
+                    <div class="mt-4 bg-green-500/10 border border-green-500/30 rounded-xl p-4">
+                        <h3 class="text-lg font-semibold text-green-400 mb-2">📣 Distribution Channels</h3>
+                        <p class="text-gray-300 text-sm">${typeof data.distribution === 'string' ? data.distribution : JSON.stringify(data.distribution)}</p>
+                    </div>
+                ` : ''}
+                
+                ${data.stack ? `
+                    <div class="mt-4 bg-gray-700/30 rounded-xl p-4 border border-gray-600/50">
+                        <h3 class="text-lg font-semibold text-blue-400 mb-2">📚 Offer Stack Strategy</h3>
+                        <p class="text-gray-300 text-sm">${data.stack}</p>
+                    </div>
+                ` : ''}
+            `;
+        }
+
+        function renderFull(data) {
+            return `
+                <h2 class="text-2xl font-bold mb-6 flex items-center gap-2">⚡ Full Market Analysis</h2>
+                <p class="text-gray-400 mb-6">Query: "${currentQuery}"</p>
+                
+                <!-- Verdict -->
+                ${data.verdict ? `
+                    <div class="mb-8 p-6 rounded-xl ${
+                        data.verdict.pursue === 'yes' ? 'bg-green-500/10 border border-green-500/30' :
+                        data.verdict.pursue === 'no' ? 'bg-red-500/10 border border-red-500/30' :
+                        'bg-yellow-500/10 border border-yellow-500/30'
+                    }">
+                        <div class="flex items-center gap-3 mb-3">
+                            <span class="text-4xl">${
+                                data.verdict.pursue === 'yes' ? '✅' :
+                                data.verdict.pursue === 'no' ? '❌' : '⚠️'
+                            }</span>
+                            <div>
+                                <h3 class="text-xl font-bold ${
+                                    data.verdict.pursue === 'yes' ? 'text-green-400' :
+                                    data.verdict.pursue === 'no' ? 'text-red-400' : 'text-yellow-400'
+                                }">Verdict: ${data.verdict.pursue?.toUpperCase() || 'EVALUATE'}</h3>
+                            </div>
+                        </div>
+                        <p class="text-gray-200 mb-4">${data.verdict.reasoning || ''}</p>
+                        ${data.verdict.nextSteps ? `
+                            <div class="mt-4">
+                                <h4 class="font-semibold text-gray-300 mb-2">Next Steps:</h4>
+                                <ol class="list-decimal list-inside space-y-1 text-gray-300">
+                                    ${data.verdict.nextSteps.map(s => `<li>${s}</li>`).join('')}
+                                </ol>
+                            </div>
+                        ` : ''}
+                    </div>
+                ` : ''}
+                
+                <!-- Quick Stats -->
+                ${data.demand ? `
+                    <div class="grid grid-cols-3 gap-4 mb-8">
+                        <div class="bg-gray-700/30 rounded-xl p-4 text-center border border-gray-600/50">
+                            <div class="text-3xl font-bold ${data.demand.score >= 7 ? 'text-green-400' : data.demand.score >= 5 ? 'text-yellow-400' : 'text-red-400'}">${data.demand.score || '?'}/10</div>
+                            <div class="text-gray-400 text-sm">Demand</div>
+                        </div>
+                        <div class="bg-gray-700/30 rounded-xl p-4 text-center border border-gray-600/50">
+                            <div class="text-2xl font-bold ${
+                                data.demand.trend === 'growing' ? 'text-green-400' : 
+                                data.demand.trend === 'declining' ? 'text-red-400' : 'text-yellow-400'
+                            }">${data.demand.trend === 'growing' ? '📈' : data.demand.trend === 'declining' ? '📉' : '➡️'}</div>
+                            <div class="text-gray-400 text-sm">${data.demand.trend || 'Unknown'}</div>
+                        </div>
+                        <div class="bg-gray-700/30 rounded-xl p-4 text-center border border-gray-600/50">
+                            <div class="text-2xl font-bold text-purple-400">${data.competitors?.top5?.length || '?'}</div>
+                            <div class="text-gray-400 text-sm">Competitors</div>
+                        </div>
+                    </div>
+                ` : ''}
+                
+                <!-- Audiences -->
+                ${data.audience ? `
+                    <div class="mb-8">
+                        <h3 class="text-xl font-semibold mb-4 flex items-center gap-2">🎯 Target Audiences</h3>
+                        <div class="grid gap-3">
+                            ${(Array.isArray(data.audience) ? data.audience : [data.audience]).map(a => `
+                                <div class="bg-gray-700/30 rounded-lg p-4 border border-gray-600/50">
+                                    <h4 class="font-semibold text-purple-300">${a.name}</h4>
+                                    <p class="text-gray-400 text-sm">${a.who || a.description || ''}</p>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                ` : ''}
+                
+                <!-- Where to Find Them -->
+                ${data.channels ? `
+                    <div class="mb-8">
+                        <h3 class="text-xl font-semibold mb-4 flex items-center gap-2">📍 Where to Find Them</h3>
+                        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
+                            ${Object.entries(data.channels).map(([key, val]) => {
+                                if (!val || (Array.isArray(val) && val.length === 0)) return '';
+                                const icons = { reddit: '🔴', linkedin: '💼', newsletters: '📧', podcasts: '🎙️', influencers: '⭐' };
+                                return `
+                                    <div class="bg-gray-700/30 rounded-lg p-3 border border-gray-600/50">
+                                        <h4 class="font-semibold text-blue-300 text-sm mb-2">${icons[key] || '📌'} ${key}</h4>
+                                        <ul class="text-xs text-gray-400 space-y-1">
+                                            ${(Array.isArray(val) ? val.slice(0, 3) : [val]).map(v => `<li>• ${typeof v === 'string' ? v : v.name || JSON.stringify(v)}</li>`).join('')}
+                                        </ul>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    </div>
+                ` : ''}
+                
+                <!-- Pain Points -->
+                ${data.painpoints ? `
+                    <div class="mb-8">
+                        <h3 class="text-xl font-semibold mb-4 flex items-center gap-2">🔥 Key Pain Points</h3>
+                        <div class="space-y-2">
+                            ${(data.painpoints.top5Urgent || data.painpoints.urgent || []).map(p => `
+                                <div class="bg-red-500/10 border border-red-500/30 rounded-lg p-3 flex justify-between items-center">
+                                    <span class="text-gray-200">${typeof p === 'string' ? p : (p.description || p.problem || p.pain || p.text || p.name || JSON.stringify(p))}</span>
+                                    ${p.intensity ? `<span class="text-red-400 font-bold text-sm">${p.intensity}/10</span>` : ''}
+                                </div>
+                            `).join('')}
+                        </div>
+                        ${data.painpoints.topQuestions ? `
+                            <div class="mt-4">
+                                <h4 class="text-sm font-semibold text-gray-400 mb-2">Questions they ask:</h4>
+                                <ul class="text-sm text-gray-300 space-y-1">
+                                    ${data.painpoints.topQuestions.map(q => `<li>• "${q}"</li>`).join('')}
+                                </ul>
+                            </div>
+                        ` : ''}
+                    </div>
+                ` : ''}
+                
+                <!-- Competitors -->
+                ${data.competitors?.top5 ? `
+                    <div class="mb-8">
+                        <h3 class="text-xl font-semibold mb-4 flex items-center gap-2">🏢 Top Competitors</h3>
+                        <div class="space-y-2">
+                            ${data.competitors.top5.map(c => `
+                                <div class="bg-gray-700/30 rounded-lg p-3 border border-gray-600/50 flex justify-between items-center">
+                                    <div>
+                                        <span class="font-semibold text-white">${c.name}</span>
+                                        <span class="text-gray-500 text-sm ml-2">${c.offering || ''}</span>
+                                    </div>
+                                    <span class="text-green-400 text-sm">${c.pricing || ''}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                        ${data.competitors.gaps ? `
+                            <div class="mt-4 bg-green-500/10 border border-green-500/30 rounded-lg p-3">
+                                <h4 class="text-sm font-semibold text-green-400 mb-2">💎 Gaps/Opportunities:</h4>
+                                <ul class="text-sm text-gray-300 space-y-1">
+                                    ${data.competitors.gaps.map(g => `<li>• ${g}</li>`).join('')}
+                                </ul>
+                            </div>
+                        ` : ''}
+                    </div>
+                ` : ''}
+                
+                <!-- Offer Recommendations -->
+                ${data.offers ? `
+                    <div class="mb-8">
+                        <h3 class="text-xl font-semibold mb-4 flex items-center gap-2">💡 Recommended Offers</h3>
+                        <p class="text-gray-400 text-sm mb-3">👆 Click any offer to build a $100M offer + landing page</p>
+                        <div class="space-y-3">
+                            ${(data.offers.recommended || []).map((o, idx) => `
+                                <div class="bg-purple-500/10 border border-purple-500/30 rounded-lg p-4 cursor-pointer hover:border-purple-400 hover:bg-purple-500/20 transition" onclick="openOfferBuilder(${idx})">
+                                    <div class="flex justify-between items-start mb-2">
+                                        <h4 class="font-semibold text-purple-300">${o.name}</h4>
+                                        <div class="text-right">
+                                            <span class="text-green-400 text-sm">${o.priceRange || ''}</span>
+                                            <span class="text-gray-500 text-xs block">${o.effort || ''} effort</span>
+                                        </div>
+                                    </div>
+                                    <div class="flex gap-2 flex-wrap mb-2">
+                                        ${o.category ? `<span class="text-xs bg-cyan-500/30 text-cyan-300 px-2 py-0.5 rounded">${o.category}</span>` : ''}
+                                        <span class="text-xs bg-purple-500/30 text-purple-300 px-2 py-0.5 rounded">${o.type || 'Product'}</span>
+                                    </div>
+                                    ${o.distributionPlay ? `<p class="text-cyan-400 text-xs">📣 ${o.distributionPlay}</p>` : ''}
+                                </div>
+                            `).join('')}
+                        </div>
+                        
+                        <div class="grid md:grid-cols-2 gap-4 mt-4">
+                            ${data.offers.quickWin ? `
+                                <div class="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-3">
+                                    <h4 class="text-sm font-semibold text-yellow-400 mb-1">⚡ Quick Win</h4>
+                                    <p class="text-sm text-gray-300">${typeof data.offers.quickWin === 'string' ? data.offers.quickWin : (data.offers.quickWin.name || '') + (data.offers.quickWin.description ? ': ' + data.offers.quickWin.description : '')}</p>
+                                </div>
+                            ` : ''}
+                            
+                            ${data.offers.toolIdea ? `
+                                <div class="bg-blue-500/10 border border-blue-500/30 rounded-lg p-3">
+                                    <h4 class="text-sm font-semibold text-blue-400 mb-1">🤖 Tool Idea</h4>
+                                    <p class="text-sm text-gray-300">${typeof data.offers.toolIdea === 'string' ? data.offers.toolIdea : (data.offers.toolIdea.name || '') + (data.offers.toolIdea.description ? ': ' + data.offers.toolIdea.description : '')}</p>
+                                </div>
+                            ` : ''}
+                            
+                            ${data.offers.aggregationPlay ? `
+                                <div class="bg-cyan-500/10 border border-cyan-500/30 rounded-lg p-3">
+                                    <h4 class="text-sm font-semibold text-cyan-400 mb-1">📰 Aggregation Play</h4>
+                                    <p class="text-sm text-gray-300">${typeof data.offers.aggregationPlay === 'string' ? data.offers.aggregationPlay : (data.offers.aggregationPlay.name || '') + (data.offers.aggregationPlay.description ? ': ' + data.offers.aggregationPlay.description : '')}</p>
+                                </div>
+                            ` : ''}
+                            
+                            ${data.offers.viralMechanic ? `
+                                <div class="bg-pink-500/10 border border-pink-500/30 rounded-lg p-3">
+                                    <h4 class="text-sm font-semibold text-pink-400 mb-1">🔄 Viral Mechanic</h4>
+                                    <p class="text-sm text-gray-300">${typeof data.offers.viralMechanic === 'string' ? data.offers.viralMechanic : (data.offers.viralMechanic.name || '') + (data.offers.viralMechanic.description ? ': ' + data.offers.viralMechanic.description : '')}</p>
+                                </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                ` : ''}
+                
+                <!-- Action Buttons -->
+                <div class="flex flex-wrap gap-3 mt-8 pt-6 border-t border-gray-700">
+                    <button onclick="runResearch('audience')" class="bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-lg text-sm">🎯 Deep Dive: Audience</button>
+                    <button onclick="runResearch('channels')" class="bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-lg text-sm">📍 Deep Dive: Channels</button>
+                    <button onclick="runResearch('painpoints')" class="bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-lg text-sm">🔥 Deep Dive: Pain Points</button>
+                    <button onclick="runResearch('competitors')" class="bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-lg text-sm">🏢 Deep Dive: Competitors</button>
+                    <button onclick="runResearch('offers')" class="bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-lg text-sm">💡 Deep Dive: Offers</button>
+                </div>
+            `;
+        }
+
+        function showError(message) {
+            document.getElementById('loading').classList.add('hidden');
+            document.getElementById('results').classList.remove('hidden');
+            document.getElementById('results').innerHTML = `
+                <div class="text-center py-10">
+                    <div class="text-5xl mb-4">😵</div>
+                    <h3 class="text-xl font-semibold text-red-400 mb-2">Error</h3>
+                    <p class="text-gray-400">${message}</p>
+                    <button onclick="location.reload()" class="mt-4 bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-lg text-sm">Try Again</button>
+                </div>
+            `;
+        }
+
+        // Allow Enter key to trigger search
+        document.getElementById('main-query').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') runFullAnalysis();
+        });
+    </script>
+</body>
+</html>

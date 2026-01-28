@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>$100M Offer Builder</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .gradient-bg { background: linear-gradient(135deg, #1e3a5f 0%, #2d1b4e 50%, #1a1a2e 100%); }
+        .card { background: rgba(31, 41, 55, 0.8); backdrop-filter: blur(10px); }
+        .fade-in { animation: fadeIn 0.3s ease-in; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    </style>
+</head>
+<body class="gradient-bg text-white min-h-screen">
+    <div class="container mx-auto px-4 py-8 max-w-4xl">
+        
+        <!-- Header -->
+        <header class="mb-8">
+            <a href="index.html" class="text-blue-400 hover:underline text-sm">← Back to Market Intel</a>
+            <h1 class="text-3xl font-bold mt-4 bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent">
+                💰 $100M Offer Builder
+            </h1>
+            <p class="text-gray-400 mt-1">Create an offer so good people feel stupid saying no</p>
+        </header>
+
+        <!-- Step Indicator -->
+        <div class="flex items-center justify-center gap-4 mb-8">
+            <div id="step1-indicator" class="flex items-center gap-2">
+                <span class="w-8 h-8 rounded-full bg-purple-500 flex items-center justify-center font-bold">1</span>
+                <span class="text-sm hidden md:inline">Value Equation</span>
+            </div>
+            <div class="w-12 h-0.5 bg-gray-600"></div>
+            <div id="step2-indicator" class="flex items-center gap-2 opacity-50">
+                <span class="w-8 h-8 rounded-full bg-gray-600 flex items-center justify-center font-bold">2</span>
+                <span class="text-sm hidden md:inline">Stack & Guarantee</span>
+            </div>
+            <div class="w-12 h-0.5 bg-gray-600"></div>
+            <div id="step3-indicator" class="flex items-center gap-2 opacity-50">
+                <span class="w-8 h-8 rounded-full bg-gray-600 flex items-center justify-center font-bold">3</span>
+                <span class="text-sm hidden md:inline">Landing Page</span>
+            </div>
+        </div>
+
+        <!-- Step 1: Value Equation -->
+        <div id="step1" class="card rounded-2xl p-6 shadow-xl fade-in">
+            <h2 class="text-xl font-semibold mb-2">📐 The Value Equation</h2>
+            <p class="text-gray-400 text-sm mb-6">Value = (Dream Outcome × Likelihood) ÷ (Time × Effort)</p>
+            
+            <div class="space-y-6">
+                <!-- Offer Name -->
+                <div>
+                    <label class="block text-sm text-gray-400 mb-1">Offer Name *</label>
+                    <input type="text" id="offerName" placeholder="e.g., Career Accelerator Program"
+                           class="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-3 focus:ring-2 focus:ring-purple-500 outline-none">
+                </div>
+
+                <!-- Dream Outcome -->
+                <div>
+                    <label class="block text-sm text-gray-400 mb-1">🎯 Dream Outcome (What do they REALLY want?)</label>
+                    <textarea id="dreamOutcome" rows="2" placeholder="e.g., Get promoted to Director within 12 months and double their salary"
+                              class="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-3 focus:ring-2 focus:ring-purple-500 outline-none"></textarea>
+                </div>
+
+                <!-- Perceived Likelihood -->
+                <div>
+                    <label class="block text-sm text-gray-400 mb-1">📊 Perceived Likelihood of Achievement (Why will THIS work?)</label>
+                    <textarea id="likelihood" rows="2" placeholder="e.g., Proven system used by 500+ PMs, 87% promotion rate, personalized roadmap"
+                              class="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-3 focus:ring-2 focus:ring-purple-500 outline-none"></textarea>
+                </div>
+
+                <!-- Time Delay -->
+                <div>
+                    <label class="block text-sm text-gray-400 mb-1">⏱️ Time to Result (How FAST do they get it?)</label>
+                    <input type="text" id="timeDelay" placeholder="e.g., See results in 30 days, full transformation in 90 days"
+                           class="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-3 focus:ring-2 focus:ring-purple-500 outline-none">
+                </div>
+
+                <!-- Effort & Sacrifice -->
+                <div>
+                    <label class="block text-sm text-gray-400 mb-1">💪 Effort Required (How EASY do you make it?)</label>
+                    <input type="text" id="effort" placeholder="e.g., Just 15 minutes/day, we do the heavy lifting, done-for-you templates"
+                           class="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-3 focus:ring-2 focus:ring-purple-500 outline-none">
+                </div>
+
+                <!-- Target Audience -->
+                <div>
+                    <label class="block text-sm text-gray-400 mb-1">👤 Target Audience</label>
+                    <input type="text" id="targetAudience" placeholder="e.g., Women in project management wanting to break into leadership"
+                           class="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-3 focus:ring-2 focus:ring-purple-500 outline-none">
+                </div>
+
+                <!-- Price -->
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm text-gray-400 mb-1">💵 Price</label>
+                        <input type="number" id="price" placeholder="997"
+                               class="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-3 focus:ring-2 focus:ring-purple-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-sm text-gray-400 mb-1">Pricing Model</label>
+                        <select id="pricingModel" class="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-3 focus:ring-2 focus:ring-purple-500 outline-none">
+                            <option value="one-time">One-time</option>
+                            <option value="monthly">Monthly</option>
+                            <option value="yearly">Yearly</option>
+                            <option value="waitlist">Waitlist (Free)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button onclick="goToStep2()" class="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 py-4 rounded-xl font-semibold text-lg transition">
+                    Next: Build Value Stack →
+                </button>
+            </div>
+        </div>
+
+        <!-- Step 2: Value Stack & Guarantees -->
+        <div id="step2" class="card rounded-2xl p-6 shadow-xl hidden">
+            <h2 class="text-xl font-semibold mb-2">📦 Value Stack & Guarantees</h2>
+            <p class="text-gray-400 text-sm mb-6">Stack value until the price feels like a steal</p>
+            
+            <div class="space-y-6">
+                <!-- Core Offer -->
+                <div>
+                    <label class="block text-sm text-gray-400 mb-1">🎁 Core Offer (The main thing they get)</label>
+                    <input type="text" id="coreOffer" placeholder="e.g., 12-Week Director Accelerator Program"
+                           class="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-3 focus:ring-2 focus:ring-purple-500 outline-none mb-2">
+                    <input type="text" id="coreOfferValue" placeholder="Value: $2,997"
+                           class="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-3 focus:ring-2 focus:ring-purple-500 outline-none">
+                </div>
+
+                <!-- Bonuses -->
+                <div>
+                    <label class="block text-sm text-gray-400 mb-2">🎀 Bonuses (Add at least 3)</label>
+                    <div id="bonuses-container" class="space-y-3">
+                        <div class="grid grid-cols-3 gap-2">
+                            <input type="text" placeholder="Bonus name" class="bonus-name col-span-2 bg-gray-700/50 border border-gray-600 rounded-lg px-3 py-2 text-sm">
+                            <input type="text" placeholder="Value $" class="bonus-value bg-gray-700/50 border border-gray-600 rounded-lg px-3 py-2 text-sm">
+                        </div>
+                        <div class="grid grid-cols-3 gap-2">
+                            <input type="text" placeholder="Bonus name" class="bonus-name col-span-2 bg-gray-700/50 border border-gray-600 rounded-lg px-3 py-2 text-sm">
+                            <input type="text" placeholder="Value $" class="bonus-value bg-gray-700/50 border border-gray-600 rounded-lg px-3 py-2 text-sm">
+                        </div>
+                        <div class="grid grid-cols-3 gap-2">
+                            <input type="text" placeholder="Bonus name" class="bonus-name col-span-2 bg-gray-700/50 border border-gray-600 rounded-lg px-3 py-2 text-sm">
+                            <input type="text" placeholder="Value $" class="bonus-value bg-gray-700/50 border border-gray-600 rounded-lg px-3 py-2 text-sm">
+                        </div>
+                    </div>
+                    <button onclick="addBonus()" class="mt-2 text-purple-400 hover:text-purple-300 text-sm">+ Add another bonus</button>
+                </div>
+
+                <!-- Guarantee -->
+                <div>
+                    <label class="block text-sm text-gray-400 mb-1">🛡️ Guarantee (Risk Reversal)</label>
+                    <select id="guaranteeType" class="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-3 focus:ring-2 focus:ring-purple-500 outline-none mb-2">
+                        <option value="money-back">Money-Back Guarantee</option>
+                        <option value="results">Results Guarantee</option>
+                        <option value="double">Double Your Money Back</option>
+                        <option value="free-until">Free Until You Get Results</option>
+                        <option value="custom">Custom Guarantee</option>
+                    </select>
+                    <input type="text" id="guaranteeDetails" placeholder="e.g., 30-day no-questions-asked refund"
+                           class="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-3 focus:ring-2 focus:ring-purple-500 outline-none">
+                </div>
+
+                <!-- Urgency/Scarcity -->
+                <div>
+                    <label class="block text-sm text-gray-400 mb-1">⏰ Urgency/Scarcity (Optional)</label>
+                    <input type="text" id="urgency" placeholder="e.g., Only 20 spots available, Price increases Friday"
+                           class="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-3 focus:ring-2 focus:ring-purple-500 outline-none">
+                </div>
+
+                <!-- Social Proof -->
+                <div>
+                    <label class="block text-sm text-gray-400 mb-1">⭐ Social Proof</label>
+                    <textarea id="socialProof" rows="2" placeholder="e.g., 500+ graduates, 87% promotion rate, Featured in Forbes"
+                              class="w-full bg-gray-700/50 border border-gray-600 rounded-lg px-4 py-3 focus:ring-2 focus:ring-purple-500 outline-none"></textarea>
+                </div>
+
+                <div class="flex gap-4">
+                    <button onclick="goToStep1()" class="flex-1 bg-gray-600 hover:bg-gray-500 py-4 rounded-xl font-semibold transition">
+                        ← Back
+                    </button>
+                    <button onclick="goToStep3()" class="flex-1 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 py-4 rounded-xl font-semibold transition">
+                        Generate Landing Page →
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 3: Landing Page Preview -->
+        <div id="step3" class="card rounded-2xl p-6 shadow-xl hidden">
+            <h2 class="text-xl font-semibold mb-2">🌐 Your Landing Page</h2>
+            <p class="text-gray-400 text-sm mb-6">Preview, customize, and download</p>
+            
+            <!-- Stripe Integration -->
+            <div class="bg-gray-700/30 rounded-lg p-4 mb-6">
+                <h3 class="font-semibold text-sm mb-3">💳 Payment Integration (Optional)</h3>
+                <div class="grid md:grid-cols-2 gap-4">
+                    <input type="text" id="stripeLink" placeholder="Stripe Payment Link (https://buy.stripe.com/...)"
+                           class="bg-gray-700/50 border border-gray-600 rounded-lg px-3 py-2 text-sm">
+                    <input type="text" id="waitlistUrl" placeholder="Or Waitlist Form URL"
+                           class="bg-gray-700/50 border border-gray-600 rounded-lg px-3 py-2 text-sm">
+                </div>
+            </div>
+
+            <!-- Preview -->
+            <div class="bg-white rounded-xl overflow-hidden mb-6" style="height: 500px;">
+                <iframe id="preview-iframe" class="w-full h-full"></iframe>
+            </div>
+
+            <!-- Actions -->
+            <div class="flex flex-wrap gap-3">
+                <button onclick="goToStep2()" class="bg-gray-600 hover:bg-gray-500 px-6 py-3 rounded-xl font-semibold transition">
+                    ← Edit Offer
+                </button>
+                <button onclick="previewFullscreen()" class="bg-blue-600 hover:bg-blue-500 px-6 py-3 rounded-xl font-semibold transition">
+                    👁️ Fullscreen Preview
+                </button>
+                <button onclick="downloadHTML()" class="bg-green-600 hover:bg-green-500 px-6 py-3 rounded-xl font-semibold transition">
+                    ⬇️ Download HTML
+                </button>
+                <button onclick="copyHTML()" class="bg-purple-600 hover:bg-purple-500 px-6 py-3 rounded-xl font-semibold transition">
+                    📋 Copy Code
+                </button>
+            </div>
+
+            <!-- Code View -->
+            <div class="mt-6">
+                <button onclick="toggleCode()" class="text-gray-400 hover:text-white text-sm">
+                    👨‍💻 View/Edit HTML Code
+                </button>
+                <div id="code-container" class="hidden mt-3">
+                    <textarea id="html-code" rows="15" class="w-full bg-gray-900 border border-gray-600 rounded-lg px-4 py-3 font-mono text-xs text-green-400"></textarea>
+                    <button onclick="updatePreview()" class="mt-2 bg-gray-600 hover:bg-gray-500 px-4 py-2 rounded-lg text-sm">
+                        🔄 Update Preview
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Value Calculator -->
+        <div id="value-calc" class="card rounded-xl p-4 mt-6">
+            <h3 class="font-semibold text-sm mb-2">📊 Value Stack Calculator</h3>
+            <div class="grid grid-cols-3 gap-4 text-center">
+                <div>
+                    <div class="text-2xl font-bold text-green-400" id="total-value">$0</div>
+                    <div class="text-xs text-gray-500">Total Value</div>
+                </div>
+                <div>
+                    <div class="text-2xl font-bold text-blue-400" id="your-price">$0</div>
+                    <div class="text-xs text-gray-500">Your Price</div>
+                </div>
+                <div>
+                    <div class="text-2xl font-bold text-yellow-400" id="value-ratio">0x</div>
+                    <div class="text-xs text-gray-500">Value Ratio</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // State
+        let currentStep = 1;
+        let offer = {};
+        let generatedHTML = '';
+
+        // Load offer from URL params or localStorage
+        window.onload = function() {
+            const params = new URLSearchParams(window.location.search);
+            const offerData = params.get('offer');
+            if (offerData) {
+                try {
+                    offer = JSON.parse(decodeURIComponent(offerData));
+                    populateFromOffer(offer);
+                } catch(e) {}
+            }
+        };
+
+        function populateFromOffer(o) {
+            document.getElementById('offerName').value = o.name || '';
+            document.getElementById('dreamOutcome').value = o.dreamOutcome || o.painSolved || '';
+            document.getElementById('targetAudience').value = o.targetAudience || '';
+            document.getElementById('price').value = o.price || o.priceRange?.replace(/[^0-9]/g, '') || '';
+            if (o.description) {
+                document.getElementById('likelihood').value = o.description;
+            }
+            if (o.distributionPlay) {
+                document.getElementById('effort').value = o.distributionPlay;
+            }
+        }
+
+        // Navigation
+        function goToStep1() {
+            currentStep = 1;
+            document.getElementById('step1').classList.remove('hidden');
+            document.getElementById('step2').classList.add('hidden');
+            document.getElementById('step3').classList.add('hidden');
+            updateStepIndicators();
+        }
+
+        function goToStep2() {
+            // Validate step 1
+            if (!document.getElementById('offerName').value) {
+                alert('Please enter an offer name');
+                return;
+            }
+            currentStep = 2;
+            document.getElementById('step1').classList.add('hidden');
+            document.getElementById('step2').classList.remove('hidden');
+            document.getElementById('step3').classList.add('hidden');
+            updateStepIndicators();
+            updateValueCalculator();
+        }
+
+        function goToStep3() {
+            currentStep = 3;
+            document.getElementById('step1').classList.add('hidden');
+            document.getElementById('step2').classList.add('hidden');
+            document.getElementById('step3').classList.remove('hidden');
+            updateStepIndicators();
+            generateLandingPage();
+        }
+
+        function updateStepIndicators() {
+            for (let i = 1; i <= 3; i++) {
+                const indicator = document.getElementById(`step${i}-indicator`);
+                const circle = indicator.querySelector('span');
+                if (i <= currentStep) {
+                    indicator.classList.remove('opacity-50');
+                    circle.classList.remove('bg-gray-600');
+                    circle.classList.add('bg-purple-500');
+                } else {
+                    indicator.classList.add('opacity-50');
+                    circle.classList.add('bg-gray-600');
+                    circle.classList.remove('bg-purple-500');
+                }
+            }
+        }
+
+        function addBonus() {
+            const container = document.getElementById('bonuses-container');
+            const div = document.createElement('div');
+            div.className = 'grid grid-cols-3 gap-2';
+            div.innerHTML = `
+                <input type="text" placeholder="Bonus name" class="bonus-name col-span-2 bg-gray-700/50 border border-gray-600 rounded-lg px-3 py-2 text-sm">
+                <input type="text" placeholder="Value $" class="bonus-value bg-gray-700/50 border border-gray-600 rounded-lg px-3 py-2 text-sm">
+            `;
+            container.appendChild(div);
+        }
+
+        function updateValueCalculator() {
+            const price = parseInt(document.getElementById('price').value) || 0;
+            const coreValue = parseInt(document.getElementById('coreOfferValue')?.value?.replace(/[^0-9]/g, '')) || price * 3;
+            
+            let bonusTotal = 0;
+            document.querySelectorAll('.bonus-value').forEach(input => {
+                bonusTotal += parseInt(input.value?.replace(/[^0-9]/g, '')) || 0;
+            });
+
+            const totalValue = coreValue + bonusTotal;
+            const ratio = price > 0 ? (totalValue / price).toFixed(1) : 0;
+
+            document.getElementById('total-value').textContent = '$' + totalValue.toLocaleString();
+            document.getElementById('your-price').textContent = '$' + price.toLocaleString();
+            document.getElementById('value-ratio').textContent = ratio + 'x';
+        }
+
+        // Update calculator on input changes
+        document.addEventListener('input', updateValueCalculator);
+
+        function gatherOfferData() {
+            const bonuses = [];
+            const bonusNames = document.querySelectorAll('.bonus-name');
+            const bonusValues = document.querySelectorAll('.bonus-value');
+            for (let i = 0; i < bonusNames.length; i++) {
+                if (bonusNames[i].value) {
+                    bonuses.push({
+                        name: bonusNames[i].value,
+                        value: bonusValues[i]?.value || ''
+                    });
+                }
+            }
+
+            return {
+                name: document.getElementById('offerName').value,
+                dreamOutcome: document.getElementById('dreamOutcome').value,
+                likelihood: document.getElementById('likelihood').value,
+                timeDelay: document.getElementById('timeDelay').value,
+                effort: document.getElementById('effort').value,
+                targetAudience: document.getElementById('targetAudience').value,
+                price: document.getElementById('price').value,
+                pricingModel: document.getElementById('pricingModel').value,
+                coreOffer: document.getElementById('coreOffer').value,
+                coreOfferValue: document.getElementById('coreOfferValue').value,
+                bonuses: bonuses,
+                guaranteeType: document.getElementById('guaranteeType').value,
+                guaranteeDetails: document.getElementById('guaranteeDetails').value,
+                urgency: document.getElementById('urgency').value,
+                socialProof: document.getElementById('socialProof').value,
+                stripeLink: document.getElementById('stripeLink').value,
+                waitlistUrl: document.getElementById('waitlistUrl').value
+            };
+        }
+
+        function generateLandingPage() {
+            const data = gatherOfferData();
+            const totalValue = parseInt(document.getElementById('total-value').textContent.replace(/[^0-9]/g, '')) || 0;
+            
+            const ctaUrl = data.stripeLink || data.waitlistUrl || '#';
+            const ctaText = data.pricingModel === 'waitlist' ? 'Join the Waitlist' : 'Get Started Now';
+            const priceDisplay = data.pricingModel === 'waitlist' ? 'Join Free' : 
+                                 data.pricingModel === 'monthly' ? `$${data.price}/month` :
+                                 data.pricingModel === 'yearly' ? `$${data.price}/year` :
+                                 `$${data.price}`;
+
+            generatedHTML = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${data.name}</title>
+    <script src="https://cdn.tailwindcss.com"><\/script>
+</head>
+<body class="bg-gray-900 text-white">
+    <!-- Hero -->
+    <section class="min-h-screen flex items-center justify-center py-20 px-4 bg-gradient-to-b from-purple-900/50 to-gray-900">
+        <div class="max-w-4xl mx-auto text-center">
+            ${data.targetAudience ? `<p class="text-purple-400 mb-4 text-lg">For ${data.targetAudience}</p>` : ''}
+            <h1 class="text-4xl md:text-6xl font-bold mb-6 leading-tight">${data.name}</h1>
+            <p class="text-xl md:text-2xl text-gray-300 mb-8 max-w-2xl mx-auto">${data.dreamOutcome}</p>
+            ${data.timeDelay ? `<p class="text-green-400 mb-8">⏱️ ${data.timeDelay}</p>` : ''}
+            <a href="${ctaUrl}" class="inline-block bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-400 hover:to-orange-400 text-black font-bold py-4 px-10 rounded-full text-xl transition transform hover:scale-105 shadow-lg">
+                ${ctaText} →
+            </a>
+            ${data.socialProof ? `<p class="mt-6 text-gray-400 text-sm">${data.socialProof}</p>` : ''}
+        </div>
+    </section>
+
+    <!-- Problem/Solution -->
+    <section class="py-20 px-4 bg-gray-800/50">
+        <div class="max-w-3xl mx-auto">
+            <h2 class="text-3xl font-bold text-center mb-12">Why This Works</h2>
+            <div class="bg-gray-700/30 rounded-2xl p-8">
+                <p class="text-lg text-gray-300">${data.likelihood || 'A proven system designed to get you results.'}</p>
+                ${data.effort ? `<p class="mt-4 text-green-400">✅ ${data.effort}</p>` : ''}
+            </div>
+        </div>
+    </section>
+
+    <!-- What You Get -->
+    <section class="py-20 px-4">
+        <div class="max-w-3xl mx-auto">
+            <h2 class="text-3xl font-bold text-center mb-12">What You Get</h2>
+            
+            <!-- Core Offer -->
+            <div class="bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-purple-500/50 rounded-2xl p-6 mb-6">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <span class="text-purple-400 text-sm font-semibold">CORE PROGRAM</span>
+                        <h3 class="text-xl font-bold mt-1">${data.coreOffer || data.name}</h3>
+                    </div>
+                    <div class="text-right">
+                        <span class="text-gray-500 line-through">${data.coreOfferValue || '$2,997'}</span>
+                        <span class="block text-green-400 font-bold">INCLUDED</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bonuses -->
+            ${data.bonuses.filter(b => b.name).map(bonus => `
+                <div class="bg-gray-800 border border-gray-700 rounded-xl p-5 mb-4">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <span class="text-yellow-400 text-sm">🎁 BONUS</span>
+                            <h3 class="font-semibold mt-1">${bonus.name}</h3>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-gray-500 line-through">${bonus.value}</span>
+                            <span class="block text-green-400 font-bold">FREE</span>
+                        </div>
+                    </div>
+                </div>
+            `).join('')}
+
+            <!-- Total Value -->
+            <div class="bg-gray-800 rounded-xl p-6 mt-8 text-center">
+                <p class="text-gray-400">Total Value: <span class="line-through">$${totalValue.toLocaleString()}</span></p>
+                <p class="text-4xl font-bold text-green-400 mt-2">${priceDisplay}</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Guarantee -->
+    ${data.guaranteeDetails ? `
+    <section class="py-20 px-4 bg-green-900/20">
+        <div class="max-w-2xl mx-auto text-center">
+            <div class="text-6xl mb-4">🛡️</div>
+            <h2 class="text-2xl font-bold mb-4">${data.guaranteeType === 'money-back' ? 'Money-Back Guarantee' : 
+                data.guaranteeType === 'results' ? 'Results Guarantee' :
+                data.guaranteeType === 'double' ? 'Double Your Money Back' :
+                data.guaranteeType === 'free-until' ? 'Free Until You Get Results' : 'Our Guarantee'}</h2>
+            <p class="text-gray-300 text-lg">${data.guaranteeDetails}</p>
+        </div>
+    </section>
+    ` : ''}
+
+    <!-- CTA -->
+    <section class="py-20 px-4 bg-gradient-to-b from-gray-900 to-purple-900/50">
+        <div class="max-w-xl mx-auto text-center">
+            <h2 class="text-3xl font-bold mb-4">${data.name}</h2>
+            ${data.urgency ? `<p class="text-yellow-400 mb-6">⚠️ ${data.urgency}</p>` : ''}
+            <div class="bg-gray-800 rounded-2xl p-8">
+                <p class="text-gray-400 line-through text-lg">$${totalValue.toLocaleString()} Value</p>
+                <p class="text-5xl font-bold text-white my-4">${priceDisplay}</p>
+                <a href="${ctaUrl}" class="block w-full bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-400 hover:to-orange-400 text-black font-bold py-4 px-8 rounded-xl text-xl transition">
+                    ${ctaText}
+                </a>
+                <p class="text-gray-500 text-sm mt-4">${data.guaranteeDetails || 'Risk-free guarantee'}</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="py-8 text-center text-gray-500 text-sm border-t border-gray-800">
+        <p>© ${new Date().getFullYear()} All rights reserved.</p>
+    </footer>
+</body>
+</html>`;
+
+            document.getElementById('preview-iframe').srcdoc = generatedHTML;
+            document.getElementById('html-code').value = generatedHTML;
+        }
+
+        function previewFullscreen() {
+            const win = window.open('', '_blank');
+            win.document.write(generatedHTML);
+        }
+
+        function downloadHTML() {
+            const blob = new Blob([generatedHTML], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'landing-page.html';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function copyHTML() {
+            navigator.clipboard.writeText(generatedHTML);
+            alert('HTML copied to clipboard!');
+        }
+
+        function toggleCode() {
+            document.getElementById('code-container').classList.toggle('hidden');
+        }
+
+        function updatePreview() {
+            generatedHTML = document.getElementById('html-code').value;
+            document.getElementById('preview-iframe').srcdoc = generatedHTML;
+        }
+    </script>
+</body>
+</html>
