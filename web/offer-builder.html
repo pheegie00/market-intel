@@ -259,28 +259,175 @@
         </div>
     </div>
 
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center hidden">
+        <div class="text-center">
+            <div class="w-16 h-16 border-4 border-purple-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <h3 class="text-xl font-semibold mb-2">Building Your Offer Stack</h3>
+            <p class="text-gray-400" id="loading-status">Applying Hormozi framework...</p>
+        </div>
+    </div>
+
     <script>
         // State
         let currentStep = 1;
         let offer = {};
         let generatedHTML = '';
+        const BUILD_API = '/.netlify/functions/build-offer';
 
-        // Load offer from URL params or localStorage
-        window.onload = function() {
+        // Load offer from URL params and auto-generate content
+        window.onload = async function() {
             const params = new URLSearchParams(window.location.search);
             const offerData = params.get('offer');
+            
             if (offerData) {
                 try {
                     offer = JSON.parse(decodeURIComponent(offerData));
-                    populateFromOffer(offer);
-                } catch(e) {}
+                    
+                    // Show loading and auto-generate
+                    showLoading('Analyzing your offer idea...');
+                    await autoGenerateOffer(offer);
+                    hideLoading();
+                    
+                } catch(e) {
+                    console.error('Failed to parse offer:', e);
+                    hideLoading();
+                }
             }
         };
 
+        function showLoading(status) {
+            document.getElementById('loading-overlay').classList.remove('hidden');
+            document.getElementById('loading-status').textContent = status || 'Generating...';
+        }
+        
+        function hideLoading() {
+            document.getElementById('loading-overlay').classList.add('hidden');
+        }
+
+        async function autoGenerateOffer(offerIdea) {
+            try {
+                document.getElementById('loading-status').textContent = 'Crafting value equation...';
+                
+                const response = await fetch(BUILD_API, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        offer: offerIdea,
+                        context: offerIdea.context || ''
+                    })
+                });
+                
+                if (!response.ok) throw new Error('API error');
+                
+                const data = await response.json();
+                
+                if (data.error) throw new Error(data.error);
+                
+                document.getElementById('loading-status').textContent = 'Populating fields...';
+                
+                // Populate all fields with generated content
+                populateFromGenerated(data.offer);
+                
+            } catch (error) {
+                console.error('Auto-generate failed:', error);
+                // Fall back to basic population
+                populateFromOffer(offerIdea);
+                alert('Auto-generation failed. Basic info filled in - please complete the rest manually.');
+            }
+        }
+
+        function populateFromGenerated(g) {
+            // Step 1: Value Equation
+            document.getElementById('offerName').value = g.offerName || g.name || '';
+            document.getElementById('dreamOutcome').value = g.dreamOutcome || '';
+            document.getElementById('likelihood').value = g.likelihood || '';
+            document.getElementById('timeDelay').value = g.timeDelay || '';
+            document.getElementById('effort').value = g.effort || '';
+            document.getElementById('targetAudience').value = g.targetAudience || '';
+            document.getElementById('price').value = g.price || '';
+            document.getElementById('pricingModel').value = g.pricingModel || 'one-time';
+            
+            // Step 2: Stack & Guarantee
+            if (g.coreOffer) {
+                document.getElementById('coreOffer').value = g.coreOffer.name || g.coreOffer.description || '';
+                document.getElementById('coreOfferValue').value = g.coreOffer.value || '';
+            }
+            
+            // Add bonuses
+            if (g.bonuses && g.bonuses.length > 0) {
+                const container = document.getElementById('bonuses-container');
+                container.innerHTML = ''; // Clear existing
+                g.bonuses.forEach(bonus => {
+                    const div = document.createElement('div');
+                    div.className = 'grid grid-cols-3 gap-2';
+                    div.innerHTML = `
+                        <input type="text" value="${bonus.name || ''}" placeholder="Bonus name" class="bonus-name col-span-2 bg-gray-700/50 border border-gray-600 rounded-lg px-3 py-2 text-sm">
+                        <input type="text" value="${bonus.value || ''}" placeholder="Value $" class="bonus-value bg-gray-700/50 border border-gray-600 rounded-lg px-3 py-2 text-sm">
+                    `;
+                    container.appendChild(div);
+                });
+            }
+            
+            // Guarantee
+            if (g.guarantee) {
+                document.getElementById('guaranteeType').value = g.guarantee.type || 'money-back';
+                document.getElementById('guaranteeDetails').value = g.guarantee.details || g.guarantee.headline || '';
+            }
+            
+            // Extras
+            document.getElementById('urgency').value = g.urgency || '';
+            document.getElementById('socialProof').value = g.socialProof || '';
+            
+            // Update calculator
+            updateValueCalculator();
+            
+            // Show implementation tips if available
+            if (g.implementationSteps || g.techStack || g.launchPlan) {
+                showImplementationTips(g);
+            }
+        }
+        
+        function showImplementationTips(g) {
+            // Add implementation section after step indicators
+            const tipsHTML = `
+                <div id="implementation-tips" class="card rounded-xl p-4 mb-6 bg-green-500/10 border border-green-500/30">
+                    <h3 class="font-semibold text-green-400 mb-3">🚀 Implementation Guide</h3>
+                    ${g.implementationSteps ? `
+                        <div class="mb-3">
+                            <h4 class="text-sm text-gray-400 mb-1">Steps to Launch:</h4>
+                            <ol class="text-sm text-gray-300 space-y-1 list-decimal list-inside">
+                                ${g.implementationSteps.map(s => `<li>${s}</li>`).join('')}
+                            </ol>
+                        </div>
+                    ` : ''}
+                    ${g.techStack ? `
+                        <div class="mb-3">
+                            <h4 class="text-sm text-gray-400 mb-1">Suggested Tools:</h4>
+                            <p class="text-sm text-gray-300">${g.techStack}</p>
+                        </div>
+                    ` : ''}
+                    ${g.launchPlan ? `
+                        <div>
+                            <h4 class="text-sm text-gray-400 mb-1">Launch Plan:</h4>
+                            <p class="text-sm text-gray-300">${g.launchPlan}</p>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+            
+            // Insert after step indicators
+            const stepIndicators = document.querySelector('.flex.items-center.justify-center.gap-4.mb-8');
+            if (stepIndicators && !document.getElementById('implementation-tips')) {
+                stepIndicators.insertAdjacentHTML('afterend', tipsHTML);
+            }
+        }
+
+        // Fallback basic population
         function populateFromOffer(o) {
             document.getElementById('offerName').value = o.name || '';
-            document.getElementById('dreamOutcome').value = o.dreamOutcome || o.painSolved || '';
-            document.getElementById('targetAudience').value = o.targetAudience || '';
+            document.getElementById('dreamOutcome').value = o.dreamOutcome || o.painSolved || o.description || '';
+            document.getElementById('targetAudience').value = o.targetAudience || o.context || '';
             document.getElementById('price').value = o.price || o.priceRange?.replace(/[^0-9]/g, '') || '';
             if (o.description) {
                 document.getElementById('likelihood').value = o.description;
