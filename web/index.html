@@ -227,10 +227,16 @@
 
         // Open offer builder with selected offer
         function openOfferBuilder(index) {
+            console.log('openOfferBuilder called with index:', index);
+            console.log('currentOffers length:', currentOffers.length);
+            console.log('currentOffers:', currentOffers);
+            
             const offer = currentOffers[index];
             if (offer) {
                 const offerData = encodeURIComponent(JSON.stringify(offer));
                 window.open(`offer-builder.html?offer=${offerData}`, '_blank');
+            } else {
+                alert(`Offer not found at index ${index}. Try clicking "Deep Dive: Offers" tab first to load offers.`);
             }
         }
 
