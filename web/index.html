@@ -227,6 +227,7 @@
 
         // Open offer builder with selected offer
         function openOfferBuilder(index) {
+            alert('Clicked offer #' + index); // Debug
             console.log('openOfferBuilder called with index:', index);
             console.log('currentOffers length:', currentOffers.length);
             console.log('currentOffers:', currentOffers);
@@ -239,6 +240,9 @@
                 alert(`Offer not found at index ${index}. Try clicking "Deep Dive: Offers" tab first to load offers.`);
             }
         }
+        
+        // Test function - call from console to verify JS is working
+        window.testClick = function() { alert('JS is working!'); };
 
         // Tab switching
         function showTab(tab) {
@@ -406,6 +410,9 @@
                     statusEl.classList.remove('text-purple-400');
                     statusEl.classList.add('text-red-400');
                     console.error(`${step.type} failed:`, error);
+                    // Track failed sections
+                    fullData._failed = fullData._failed || [];
+                    fullData._failed.push(step.type);
                 }
             }
             
@@ -823,12 +830,38 @@
                     <div class="mb-8">
                         <h3 class="text-xl font-semibold mb-4 flex items-center gap-2">🎯 Target Audiences</h3>
                         <div class="grid gap-3">
-                            ${(Array.isArray(data.audience) ? data.audience : [data.audience]).map(a => `
-                                <div class="bg-gray-700/30 rounded-lg p-4 border border-gray-600/50">
-                                    <h4 class="font-semibold text-purple-300">${a.name}</h4>
-                                    <p class="text-gray-400 text-sm">${a.who || a.description || ''}</p>
-                                </div>
-                            `).join('')}
+                            ${(Array.isArray(data.audience) ? data.audience : [data.audience]).map(a => {
+                                // Handle nested objects for 'who' field
+                                let whoText = '';
+                                if (a.who) {
+                                    if (typeof a.who === 'string') {
+                                        whoText = a.who;
+                                    } else if (typeof a.who === 'object') {
+                                        // Extract readable text from nested object
+                                        const parts = [];
+                                        if (a.who.demographics) {
+                                            const d = a.who.demographics;
+                                            parts.push(typeof d === 'string' ? d : Object.values(d).filter(v => v).join(', '));
+                                        }
+                                        if (a.who.characteristics) {
+                                            parts.push(typeof a.who.characteristics === 'string' ? a.who.characteristics : JSON.stringify(a.who.characteristics));
+                                        }
+                                        whoText = parts.join(' • ') || JSON.stringify(a.who);
+                                    }
+                                }
+                                whoText = whoText || a.description || '';
+                                
+                                return `
+                                    <div class="bg-gray-700/30 rounded-lg p-4 border border-gray-600/50">
+                                        <div class="flex justify-between items-start mb-2">
+                                            <h4 class="font-semibold text-purple-300">${a.name || 'Audience'}</h4>
+                                            ${a.underservedLevel ? `<span class="text-xs bg-green-500/30 text-green-300 px-2 py-0.5 rounded">${a.underservedLevel} underserved</span>` : ''}
+                                        </div>
+                                        <p class="text-gray-400 text-sm">${whoText}</p>
+                                        ${a.marketSize ? `<p class="text-xs text-gray-500 mt-1">Market size: ${a.marketSize}</p>` : ''}
+                                    </div>
+                                `;
+                            }).join('')}
                         </div>
                     </div>
                 ` : ''}
@@ -956,6 +989,15 @@
                                 </div>
                             ` : ''}
                         </div>
+                    </div>
+                ` : ''}
+                
+                <!-- Failed Sections Notice -->
+                ${data._failed && data._failed.length > 0 ? `
+                    <div class="bg-red-500/10 border border-red-500/30 rounded-xl p-4 mb-6">
+                        <h3 class="text-lg font-semibold text-red-400 mb-2">⚠️ Some sections failed to load</h3>
+                        <p class="text-gray-400 text-sm mb-3">These sections timed out or had errors: ${data._failed.join(', ')}</p>
+                        <p class="text-gray-500 text-xs">Use the "Deep Dive" buttons below to load them individually.</p>
                     </div>
                 ` : ''}
                 
