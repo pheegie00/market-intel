@@ -145,55 +145,25 @@ Return as JSON object with:
 
   // Offer Ideation
   async offers(query) {
-    const systemPrompt = `You are a product strategist specializing in CREATIVE growth strategies beyond typical digital products. Think like a growth hacker, not just a course creator.
+    const systemPrompt = `You are a growth hacker. Suggest 8 monetization strategies for the given audience. Mix of:
+- AI tools (auto-generate/submit/analyze)
+- Aggregation plays (curate content, sell ads)
+- Viral mechanics (shareable outputs, referral loops)
+- Products (courses, communities - but with distribution twist)
 
-For the given audience, suggest offers across MULTIPLE categories:
+At least 5 must be tools/aggregation/viral, not just courses.
 
-CATEGORY 1 - TOOLS & AUTOMATION (ListingBott-style)
-- AI-powered tools that DO something for users (generate, scrape, auto-submit, analyze)
-- Output gets auto-distributed to 30-50 platforms/directories/communities
-- Example: "Paste JD → AI rewrites resume → auto-submits to 40 job boards"
+Return JSON:
+{
+  "offers": [8 items with: name, category (Tool/Aggregator/Viral/Product), type, description (1 sentence), distributionPlay (how it spreads), priceRange, effort (low/med/high)],
+  "quickWin": {name, description},
+  "aggregationPlay": {name, description},
+  "viralMechanic": {name, description}
+}
 
-CATEGORY 2 - AGGREGATION & ROLL-UP PLAYS  
-- Aggregate content from multiple sources (overseas newsletters, niche blogs, gov databases)
-- Translate/summarize with AI → publish as your own digest
-- Sell ads against pooled audience; revenue-share with original creators
-- Example: "Monitor 50 EU career newsletters → translate → English digest → sell sponsorships"
+Be specific and creative. Think automation, not just content.`;
 
-CATEGORY 3 - VIRAL MECHANICS & DISTRIBUTION
-- Freemium tools where OUTPUT auto-shares to social (LinkedIn post, tweet thread, shareable badge)
-- Referral loops with leaderboards and rewards
-- Template marketplaces (Notion, Miro, Gumroad) with backlinks for SEO
-- Reddit AMAs, Slack bots, LinkedIn pod infiltration
-
-CATEGORY 4 - TRADITIONAL PRODUCTS (if appropriate)
-- Courses, communities, coaching, ebooks
-- But with DISTRIBUTION TWIST (auto-post to 50 channels, viral share mechanics)
-
-IMPORTANT: At least 5 offers MUST be from Categories 1-3 (tools, aggregation, viral). Do NOT just suggest courses and communities. Think like a growth hacker building automated systems.
-
-Return as JSON object with:
-- offers: array of 10-12 offer ideas (MINIMUM 7 from Categories 1-3), each containing:
-  - name: catchy offer name
-  - category: which of the 4 categories above
-  - type: tool, aggregator, viral-mechanic, course, community, etc.
-  - description: what it does (be specific about the automation)
-  - distributionPlay: HOW it spreads (auto-submit to X directories, viral share to Y platforms, etc.)
-  - painSolved: which pain point(s) it addresses
-  - revenueModel: how it makes money (subscription, one-time, ads, affiliate, success fee)
-  - priceRange: suggested price range
-  - effort: low/medium/high to create
-  - timeToMarket: how long to launch
-  - growthPotential: realistic subscriber/user numbers in 6 months
-
-Also include:
-- quickWin: fastest to launch with viral potential
-- bigOpportunity: highest revenue ceiling
-- aggregationPlay: best roll-up/aggregation opportunity for this niche
-- viralMechanic: best viral loop or shareable output idea
-- distribution: specific channels, communities, directories to target (be SPECIFIC - name actual subreddits, Slack groups, etc.)`;
-
-    const result = await callOpenAI(systemPrompt, `Suggest offers for this audience/problem: "${query}"`);
+    const result = await callOpenAI(systemPrompt, `Monetization strategies for: "${query}"`);
     return { type: "offers", query, result: parseJSON(result) };
   },
 
