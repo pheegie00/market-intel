@@ -133,6 +133,7 @@
         let currentQuery = "";
         let resultsCache = {};
         let currentOffers = [];
+        let specialOffers = {}; // Store quickWin, aggregationPlay, viralMechanic, toolIdea
         let trendingCache = null;
 
         // Trending Opportunities
@@ -234,6 +235,35 @@
             } else {
                 alert(`Offer not found. Try running Full Analysis again or click "Deep Dive: Offers" first.`);
             }
+        }
+        
+        // Open offer builder with special strategy (Quick Win, Aggregation Play, etc.)
+        function openSpecialOffer(type) {
+            const typeLabels = {
+                quickWin: 'Quick Win',
+                toolIdea: 'Tool Idea', 
+                aggregationPlay: 'Aggregation Play',
+                viralMechanic: 'Viral Mechanic'
+            };
+            
+            let offer = specialOffers[type];
+            if (!offer) {
+                alert(`Strategy not found. Try running Full Analysis again.`);
+                return;
+            }
+            
+            // Normalize to object if it's a string
+            if (typeof offer === 'string') {
+                offer = { name: typeLabels[type], description: offer };
+            }
+            
+            // Add context for better implementation guidance
+            offer.category = typeLabels[type];
+            offer.context = currentQuery;
+            offer.strategyType = type;
+            
+            const offerData = encodeURIComponent(JSON.stringify(offer));
+            window.open(`offer-builder.html?offer=${offerData}&type=${type}`, '_blank');
         }
 
         // Tab switching
@@ -426,6 +456,16 @@
                 currentOffers = fullData.offers.offers;
                 // renderFull expects "recommended" not "offers"
                 fullData.offers.recommended = fullData.offers.offers;
+            }
+            
+            // Store special offers (Quick Win, Aggregation Play, etc.)
+            if (fullData.offers) {
+                specialOffers = {
+                    quickWin: fullData.offers.quickWin,
+                    toolIdea: fullData.offers.toolIdea,
+                    aggregationPlay: fullData.offers.aggregationPlay,
+                    viralMechanic: fullData.offers.viralMechanic
+                };
             }
             
             // Now render the full results
@@ -959,30 +999,31 @@
                             `).join('')}
                         </div>
                         
-                        <div class="grid md:grid-cols-2 gap-4 mt-4">
+                        <p class="text-gray-500 text-xs mt-4 mb-2">👆 Click these strategies to get implementation details:</p>
+                        <div class="grid md:grid-cols-2 gap-4">
                             ${data.offers.quickWin ? `
-                                <div class="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-3">
+                                <div class="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-3 cursor-pointer hover:border-yellow-400 hover:bg-yellow-500/20 transition" onclick="openSpecialOffer('quickWin')">
                                     <h4 class="text-sm font-semibold text-yellow-400 mb-1">⚡ Quick Win</h4>
                                     <p class="text-sm text-gray-300">${typeof data.offers.quickWin === 'string' ? data.offers.quickWin : (data.offers.quickWin.name || '') + (data.offers.quickWin.description ? ': ' + data.offers.quickWin.description : '')}</p>
                                 </div>
                             ` : ''}
                             
                             ${data.offers.toolIdea ? `
-                                <div class="bg-blue-500/10 border border-blue-500/30 rounded-lg p-3">
+                                <div class="bg-blue-500/10 border border-blue-500/30 rounded-lg p-3 cursor-pointer hover:border-blue-400 hover:bg-blue-500/20 transition" onclick="openSpecialOffer('toolIdea')">
                                     <h4 class="text-sm font-semibold text-blue-400 mb-1">🤖 Tool Idea</h4>
                                     <p class="text-sm text-gray-300">${typeof data.offers.toolIdea === 'string' ? data.offers.toolIdea : (data.offers.toolIdea.name || '') + (data.offers.toolIdea.description ? ': ' + data.offers.toolIdea.description : '')}</p>
                                 </div>
                             ` : ''}
                             
                             ${data.offers.aggregationPlay ? `
-                                <div class="bg-cyan-500/10 border border-cyan-500/30 rounded-lg p-3">
+                                <div class="bg-cyan-500/10 border border-cyan-500/30 rounded-lg p-3 cursor-pointer hover:border-cyan-400 hover:bg-cyan-500/20 transition" onclick="openSpecialOffer('aggregationPlay')">
                                     <h4 class="text-sm font-semibold text-cyan-400 mb-1">📰 Aggregation Play</h4>
                                     <p class="text-sm text-gray-300">${typeof data.offers.aggregationPlay === 'string' ? data.offers.aggregationPlay : (data.offers.aggregationPlay.name || '') + (data.offers.aggregationPlay.description ? ': ' + data.offers.aggregationPlay.description : '')}</p>
                                 </div>
                             ` : ''}
                             
                             ${data.offers.viralMechanic ? `
-                                <div class="bg-pink-500/10 border border-pink-500/30 rounded-lg p-3">
+                                <div class="bg-pink-500/10 border border-pink-500/30 rounded-lg p-3 cursor-pointer hover:border-pink-400 hover:bg-pink-500/20 transition" onclick="openSpecialOffer('viralMechanic')">
                                     <h4 class="text-sm font-semibold text-pink-400 mb-1">🔄 Viral Mechanic</h4>
                                     <p class="text-sm text-gray-300">${typeof data.offers.viralMechanic === 'string' ? data.offers.viralMechanic : (data.offers.viralMechanic.name || '') + (data.offers.viralMechanic.description ? ': ' + data.offers.viralMechanic.description : '')}</p>
                                 </div>
