@@ -27,6 +27,39 @@
             <p class="text-gray-400 mt-2">AI-powered market research • Find your audience • Discover opportunities</p>
         </header>
 
+        <!-- Trending Button -->
+        <div class="text-center mb-6">
+            <button onclick="showTrending()" id="trending-btn"
+                    class="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 px-6 py-3 rounded-xl font-semibold transition shadow-lg hover:shadow-orange-500/25 inline-flex items-center gap-2">
+                <span>🔥</span> Trending Opportunities
+                <span class="text-xs bg-white/20 px-2 py-0.5 rounded-full">Today's Top 10</span>
+            </button>
+            <p class="text-gray-500 text-xs mt-2">Don't know what to research? See what's trending right now</p>
+        </div>
+
+        <!-- Trending Modal -->
+        <div id="trending-modal" class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden z-50 overflow-y-auto">
+            <div class="min-h-screen flex items-start justify-center p-4 pt-20">
+                <div class="bg-gray-800 rounded-2xl max-w-3xl w-full shadow-2xl border border-gray-700">
+                    <div class="p-6 border-b border-gray-700 flex justify-between items-center">
+                        <div>
+                            <h2 class="text-2xl font-bold flex items-center gap-2">🔥 Trending Opportunities</h2>
+                            <p class="text-gray-400 text-sm mt-1">Click any opportunity to research it</p>
+                        </div>
+                        <button onclick="closeTrending()" class="text-gray-400 hover:text-white text-2xl">&times;</button>
+                    </div>
+                    <div id="trending-content" class="p-6">
+                        <div class="flex justify-center items-center py-12">
+                            <div class="text-center">
+                                <div class="w-12 h-12 border-4 border-purple-500 border-t-transparent rounded-full spinner mx-auto mb-4"></div>
+                                <p class="text-gray-400">Finding today's hottest opportunities...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Main Search -->
         <div class="card rounded-2xl p-6 mb-6 shadow-xl">
             <div class="flex flex-col md:flex-row gap-4">
@@ -95,10 +128,102 @@
 
     <script>
         const API_URL = "/.netlify/functions/research";
+        const TRENDING_URL = "/.netlify/functions/trending";
         let currentTab = "full";
         let currentQuery = "";
         let resultsCache = {};
         let currentOffers = [];
+        let trendingCache = null;
+
+        // Trending Opportunities
+        async function showTrending() {
+            const modal = document.getElementById('trending-modal');
+            const content = document.getElementById('trending-content');
+            modal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+            
+            // Show loading if no cache
+            if (!trendingCache) {
+                content.innerHTML = `
+                    <div class="flex justify-center items-center py-12">
+                        <div class="text-center">
+                            <div class="w-12 h-12 border-4 border-purple-500 border-t-transparent rounded-full spinner mx-auto mb-4"></div>
+                            <p class="text-gray-400">Finding today's hottest opportunities...</p>
+                        </div>
+                    </div>
+                `;
+                
+                try {
+                    const response = await fetch(TRENDING_URL);
+                    if (!response.ok) throw new Error('Failed to fetch trending');
+                    const text = await response.text();
+                    const data = JSON.parse(text);
+                    
+                    if (data.error) throw new Error(data.error);
+                    trendingCache = data.opportunities || [];
+                } catch (error) {
+                    content.innerHTML = `
+                        <div class="text-center py-12">
+                            <div class="text-4xl mb-4">😕</div>
+                            <p class="text-red-400">${error.message}</p>
+                            <button onclick="trendingCache = null; showTrending();" class="mt-4 bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded-lg">Try Again</button>
+                        </div>
+                    `;
+                    return;
+                }
+            }
+            
+            // Render trending opportunities
+            const categoryColors = {
+                'Tech & AI': 'bg-blue-500/20 border-blue-500/50 text-blue-300',
+                'Health & Wellness': 'bg-green-500/20 border-green-500/50 text-green-300',
+                'Finance & Business': 'bg-yellow-500/20 border-yellow-500/50 text-yellow-300',
+                'Career & Skills': 'bg-purple-500/20 border-purple-500/50 text-purple-300',
+                'Lifestyle': 'bg-pink-500/20 border-pink-500/50 text-pink-300',
+                'B2B Services': 'bg-cyan-500/20 border-cyan-500/50 text-cyan-300'
+            };
+            
+            const trendIcons = {
+                'viral': '🚀',
+                'rising': '📈',
+                'steady-growth': '📊'
+            };
+            
+            content.innerHTML = `
+                <div class="grid gap-3">
+                    ${trendingCache.map((opp, idx) => `
+                        <div class="bg-gray-700/50 rounded-xl p-4 border border-gray-600 hover:border-purple-500 cursor-pointer transition group"
+                             onclick="selectTrending('${opp.title.replace(/'/g, "\\'")}')">
+                            <div class="flex items-start gap-3">
+                                <span class="text-2xl">${opp.icon || '💡'}</span>
+                                <div class="flex-1">
+                                    <div class="flex items-center gap-2 flex-wrap mb-1">
+                                        <h3 class="font-semibold text-lg group-hover:text-purple-300 transition">${opp.title}</h3>
+                                        <span class="text-xs px-2 py-0.5 rounded-full ${categoryColors[opp.category] || 'bg-gray-600 text-gray-300'}">${opp.category}</span>
+                                        <span class="text-xs">${trendIcons[opp.trendStrength] || '📈'} ${opp.trendStrength}</span>
+                                    </div>
+                                    <p class="text-gray-400 text-sm mb-2">${opp.whyTrending}</p>
+                                    <p class="text-purple-400 text-xs">💡 ${opp.offerIdea}</p>
+                                </div>
+                                <span class="text-gray-500 group-hover:text-purple-400 transition">→</span>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+                <p class="text-gray-500 text-xs mt-4 text-center">Updated every few hours • Click any opportunity to research it</p>
+            `;
+        }
+        
+        function closeTrending() {
+            document.getElementById('trending-modal').classList.add('hidden');
+            document.body.style.overflow = '';
+        }
+        
+        function selectTrending(title) {
+            document.getElementById('main-query').value = title;
+            closeTrending();
+            runFullAnalysis();
+        }
 
         // Open offer builder with selected offer
         function openOfferBuilder(index) {
