@@ -227,22 +227,14 @@
 
         // Open offer builder with selected offer
         function openOfferBuilder(index) {
-            alert('Clicked offer #' + index); // Debug
-            console.log('openOfferBuilder called with index:', index);
-            console.log('currentOffers length:', currentOffers.length);
-            console.log('currentOffers:', currentOffers);
-            
             const offer = currentOffers[index];
             if (offer) {
                 const offerData = encodeURIComponent(JSON.stringify(offer));
                 window.open(`offer-builder.html?offer=${offerData}`, '_blank');
             } else {
-                alert(`Offer not found at index ${index}. Try clicking "Deep Dive: Offers" tab first to load offers.`);
+                alert(`Offer not found. Try running Full Analysis again or click "Deep Dive: Offers" first.`);
             }
         }
-        
-        // Test function - call from console to verify JS is working
-        window.testClick = function() { alert('JS is working!'); };
 
         // Tab switching
         function showTab(tab) {
